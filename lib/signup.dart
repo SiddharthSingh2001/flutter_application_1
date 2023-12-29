@@ -47,7 +47,7 @@ class _FirstPageState extends State<FirstPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Center(child: Text('Signup Page'))),
+      appBar: AppBar(title: const Center(child: Text('Signup Page'))),
       body: SingleChildScrollView(
         child: Form(
           key: formkey,
@@ -121,14 +121,14 @@ class _FirstPageState extends State<FirstPage> {
                       LoadView();
                     }
                   },
-                  child: Text('Create Account')),
+                  child: const Text('Create Account')),
               ElevatedButton(
                   onPressed: () async {
                     setState(() {
                       LoadView();
                     });
                   },
-                  child: Text('Refresh')),
+                  child: const Text('Refresh')),
               Padding(
                 padding: const EdgeInsets.all(15.0),
                 child: SizedBox(
@@ -139,6 +139,15 @@ class _FirstPageState extends State<FirstPage> {
                       return ListTile(
                         title: Text(items[index][0]),
                         subtitle: Text(items[index][1]),
+                        leading: IconButton(
+                            onPressed: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          HomePage(Uname: items[index][0])));
+                            },
+                            icon: Icon(Icons.golf_course)),
                         trailing: IconButton(
                             onPressed: () async {
                               print(items[index][0]);
