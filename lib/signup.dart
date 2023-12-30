@@ -16,6 +16,7 @@ class _FirstPageState extends State<FirstPage> {
   TextEditingController emp_name = TextEditingController();
   TextEditingController emp_pass = TextEditingController();
   List items = [];
+  bool isEdit = false;
 
   @override
   void initState() {
@@ -28,10 +29,11 @@ class _FirstPageState extends State<FirstPage> {
     var record = await DatabaseHelper.instance.queryDatabase();
     setState(() {
       items = record.map((elm) {
+        String emp_id = elm['emp_id'] as String;
         String emp_name = elm['emp_name'] as String;
         String emp_pass = elm['emp_pass'] as String;
         // return '$emp_name - $emp_pass';
-        return [emp_name, emp_pass];
+        return [emp_id, emp_name, emp_pass];
       }).toList();
 
       print('items: $items');
@@ -109,10 +111,18 @@ class _FirstPageState extends State<FirstPage> {
               ElevatedButton(
                   onPressed: () async {
                     if (formkey.currentState!.validate()) {
-                      await DatabaseHelper.instance.insertRecord({
-                        DatabaseHelper.columnName: emp_name.text,
-                        DatabaseHelper.columnPass: emp_pass.text
-                      });
+                      if (isEdit == true) {
+                        await DatabaseHelper.instance.updateRecord({
+                          DatabaseHelper.columnId: 1,
+                          DatabaseHelper.columnName: emp_name.text,
+                          DatabaseHelper.columnPass: emp_pass.text
+                        });
+                      } else {
+                        await DatabaseHelper.instance.insertRecord({
+                          DatabaseHelper.columnName: emp_name.text,
+                          DatabaseHelper.columnPass: emp_pass.text
+                        });
+                      }
 
                       emp_name.clear();
                       emp_pass.clear();
@@ -121,10 +131,14 @@ class _FirstPageState extends State<FirstPage> {
                       LoadView();
                     }
                   },
-                  child: const Text('Create Account')),
+                  child: Text(isEdit == false ? 'Create Account' : 'Update')),
               ElevatedButton(
                   onPressed: () async {
                     setState(() {
+                      emp_name.clear();
+                      emp_pass.clear();
+                      isEdit = false;
+
                       LoadView();
                     });
                   },
@@ -141,19 +155,55 @@ class _FirstPageState extends State<FirstPage> {
                         subtitle: Text(items[index][1]),
                         leading: IconButton(
                             onPressed: () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          HomePage(Uname: items[index][0])));
+                              setState(() {
+                                emp_name.text = items[index][0];
+                                emp_pass.text = items[index][1];
+                                isEdit = true;
+                              });
+
+                              // Navigator.push(
+                              //     context,
+                              //     MaterialPageRoute(
+                              //         builder: (context) =>
+                              //             HomePage(Uname: items[index][0])));
                             },
-                            icon: Icon(Icons.golf_course)),
+                            icon: Icon(Icons.edit)),
                         trailing: IconButton(
                             onPressed: () async {
-                              print(items[index][0]);
-                              await DatabaseHelper.instance
-                                  .deleteRecord(items[index][0]);
-                              LoadView();
+                              showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                        title: const Text("Are you sure?"),
+                                        content: const Text(
+                                            "You want to delete this"),
+                                        actions: <Widget>[
+                                          TextButton(
+                                            onPressed: () async {
+                                              await DatabaseHelper.instance
+                                                  .deleteRecord(
+                                                      items[index][0]);
+                                              Navigator.of(context).pop();
+                                              LoadView();
+                                            },
+                                            child: Container(
+                                              color: Color.fromARGB(
+                                                  255, 175, 76, 76),
+                                              padding: const EdgeInsets.all(14),
+                                              child: const Text("Yes"),
+                                            ),
+                                          ),
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: Container(
+                                              color: Colors.green,
+                                              padding: const EdgeInsets.all(14),
+                                              child: const Text("Cancel"),
+                                            ),
+                                          ),
+                                        ],
+                                      ));
                             },
                             icon: const Icon(
                               Icons.delete,

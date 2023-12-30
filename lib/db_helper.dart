@@ -46,9 +46,9 @@ class DatabaseHelper {
 
   Future<int> updateRecord(Map<String, dynamic> row) async {
     Database? db = await instance.database;
-    int id = row[columnId];
+    String uname = row[columnName];
     return await db!
-        .update(dbTable, row, where: '$columnId = ?', whereArgs: [id]);
+        .update(dbTable, row, where: '$columnName = ?', whereArgs: [uname]);
   }
 
   Future<int> deleteRecord(String empName) async {
